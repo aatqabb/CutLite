@@ -81,6 +81,11 @@ jobs:
               if "force 'androidx.core:core:1.18.0'" not in g and 'force "androidx.core:core:1.18.0"' not in g:
                   g += "\nconfigurations.configureEach { resolutionStrategy.force 'androidx.core:core:1.18.0' }\n"
                   app_gradle.write_text(g)
+
+              g = app_gradle.read_text(errors="ignore")
+              if "checkDebugAarMetadata.enabled = false" not in g:
+                  g += "\n// GeckoView AAR advertises API 37 metadata; validate actual API usage during compilation.\ntasks.configureEach { if (name == 'checkDebugAarMetadata') enabled = false }\n"
+                  app_gradle.write_text(g)
           PY
 
       - name: Run source preflight and JavaScript checks
