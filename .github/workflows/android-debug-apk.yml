@@ -80,19 +80,15 @@ jobs:
         shell: bash
         run: |
           set +e
-          preflight_output="$(python3 scripts/preflight.py 2>&1)"
+          python3 scripts/preflight.py > preflight.log 2>&1
           preflight_status=$?
           set -e
-          printf '%s\\n' "$preflight_output"
-
-          # The cloud build deliberately upgrades AGP and removes duplicate legacy
-          # Activity mirrors from the Gradle source tree; the compiler validates the
-          # canonical Activity. All other preflight failures remain blocking.
-          failures="$(grep '^FAIL  ' <<< "$preflight_output" || true)"
-          unexpected="$(grep -Ev '^FAIL  (Android Gradle Plugin pinned|Legacy Java mirrors match Gradle source)
+          cat preflight.log
+          failures="$(grep '^FAIL  ' preflight.log || true)"
+          unexpected="$(printf '%s\n' "$failures" | grep -Ev '^FAIL  (Android Gradle Plugin pinned|Legacy Java mirrors match Gradle source)$' || true)"
           if [ -n "$unexpected" ]; then
             echo "Unexpected source preflight failures:"
-            printf '%s\\n' "$unexpected"
+            printf '%s\n' "$unexpected"
             exit 1
           fi
           if [ "$preflight_status" -ne 0 ] && [ -z "$failures" ]; then
