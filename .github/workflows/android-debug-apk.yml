@@ -75,6 +75,17 @@ jobs:
               s = s.replace('buildToolsVersion "37.0.0"', 'buildToolsVersion "36.0.0"')
               p.write_text(s)
 
+          manifest = root / "app/src/main/AndroidManifest.xml"
+          if manifest.is_file():
+              m = manifest.read_text(errors="ignore")
+              if 'xmlns:tools=' not in m:
+                  m = re.sub(r'<manifest\\b', '<manifest xmlns:tools="http://schemas.android.com/tools"', m, count=1)
+              m = re.sub(r'(<service\\b(?=[^>]*org\\.mozilla\\.gecko\\.process\\.GeckoChildProcessServices)[^>]*?)(\\s*/?>)',
+                         lambda x: x.group(1) if 'tools:replace=' in x.group(1) else x.group(1) + ' tools:replace="android:process"' + x.group(2),
+                         m, flags=re.S)
+              manifest.write_text(m)
+              print("Applied GeckoView service process manifest overrides")
+
           app_gradle = root / "app/build.gradle"
           if app_gradle.is_file():
               g = app_gradle.read_text(errors="ignore")
