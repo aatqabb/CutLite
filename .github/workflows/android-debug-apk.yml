@@ -78,26 +78,15 @@ jobs:
           manifest = root / "app/src/main/AndroidManifest.xml"
           if manifest.is_file():
               m = manifest.read_text(errors="ignore")
-              if 'xmlns:tools=' not in m:
-                  m = re.sub(r'<manifest\\b', '<manifest xmlns:tools="http://schemas.android.com/tools"', m, count=1)
-              m = re.sub(r'(<service\\b(?=[^>]*org\\.mozilla\\.gecko\\.process\\.GeckoChildProcessServices)[^>]*?)(\\s*/?>)',
-                         lambda x: x.group(1) if 'tools:replace=' in x.group(1) else x.group(1) + ' tools:replace="android:process"' + x.group(2),
-                         m, flags=re.S)
-              manifest.write_text(m)
-              print("Applied GeckoView service process manifest overrides")
-
-          manifest = root / "app/src/main/AndroidManifest.xml"
-          if manifest.is_file():
-              m = manifest.read_text(errors="ignore")
               if "xmlns:tools=" not in m:
-                  m = re.sub(r"<manifest\\b", '<manifest xmlns:tools="http://schemas.android.com/tools"', m, count=1)
-              def add_tools_replace(match, attr):
+                  m = re.sub(r'<manifest\b', '<manifest xmlns:tools="http://schemas.android.com/tools"', m, count=1)
+              def replace_attr(match, attr):
                   tag = match.group(0)
                   if "tools:replace=" in tag:
                       return tag
                   return tag[:-1] + f' tools:replace="{attr}">'
-              m = re.sub(r"<service\\b(?=[^>]*org\\.mozilla\\.gecko\\.process\\.GeckoChildProcessServices)[^>]*>", lambda x: add_tools_replace(x, "android:process"), m)
-              m = re.sub(r"<provider\\b(?=[^>]*org\\.mozilla\\.gecko\\.GeckoClipboardContentProvider)[^>]*>", lambda x: add_tools_replace(x, "android:exported"), m)
+              m = re.sub(r'<service\b(?=[^>]*android:process=)[^>]*>', lambda x: replace_attr(x, "android:process"), m)
+              m = re.sub(r'<provider\b(?=[^>]*org\.mozilla\.gecko\.GeckoClipboardContentProvider)[^>]*>', lambda x: replace_attr(x, "android:exported"), m)
               manifest.write_text(m)
               print("Applied GeckoView manifest merge overrides")
 
