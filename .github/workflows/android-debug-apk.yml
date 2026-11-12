@@ -43,7 +43,11 @@ jobs:
           gradle-version: '9.3.1'
 
       - name: Unpack CutLite source archive
-        run: unzip -o CutLite-Source-cloud-build-workflow.zip -d .
+        run: |
+          unzip -o CutLite-Source-cloud-build-workflow.zip -d .
+          # Keep only the canonical packaged MainActivity; stale root-level copies
+          # declare the same public class and break Java compilation.
+          rm -f android-app/app/src/main/java/MainActivity.java android-app/app/src/main/java/MainActivity-base.java
 
       - name: Run source preflight and JavaScript checks
         working-directory: android-app
