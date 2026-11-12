@@ -45,6 +45,11 @@ jobs:
       - name: Unpack and normalize CutLite source
         run: |
           unzip -n CutLite-Source-cloud-build-workflow.zip -d .
+          # Overlay the edited canonical HTML into both Android asset copies before validation/build.
+          test -s mobile-video-editor.html
+          mkdir -p android-app/assets/www android-app/app/src/main/assets/www
+          cp -f mobile-video-editor.html android-app/assets/www/index.html
+          cp -f mobile-video-editor.html android-app/app/src/main/assets/www/index.html
           # Publish the exact existing editor source from the archive into the repo
           # so subsequent edits modify the current app rather than creating a new one.
           test -s mobile-video-editor.html
