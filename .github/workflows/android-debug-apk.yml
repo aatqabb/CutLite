@@ -32,10 +32,10 @@ jobs:
         with:
           packages: platform-tools
 
-      - name: Install published Android API 37 SDK
+      - name: Install published Android API 36 SDK
         run: |
           yes | sdkmanager --licenses >/dev/null
-          sdkmanager "platform-tools" "platforms;android-37" "build-tools;37.0.0"
+          sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -65,13 +65,13 @@ jobs:
 
           for p in root.rglob("*.gradle"):
               s = p.read_text(errors="ignore")
-              s = s.replace("8.7.3", "9.2.0")
-              s = s.replace("159.0.20261102144711", "158.0.20261021001945")
-              s = s.replace("158.0.20260923091338", "158.0.20261021001945")
-              s = s.replace("compileSdk 35", "compileSdk 37").replace("compileSdk 36", "compileSdk 37")
+              s = s.replace("8.7.3", "9.1.0")
+              s = s.replace("159.0.20261102144711", "157.0.20260924084938")
+              s = s.replace("158.0.20261021001945", "157.0.20260924084938")
+              s = s.replace("compileSdk 35", "compileSdk 36").replace("compileSdk 37", "compileSdk 36")
               s = s.replace("targetSdk 37", "targetSdk 34")
-              s = s.replace('buildToolsVersion = "36.0.0"', 'buildToolsVersion = "37.0.0"')
-              s = s.replace('buildToolsVersion "36.0.0"', 'buildToolsVersion "37.0.0"')
+              s = s.replace('buildToolsVersion = "37.0.0"', 'buildToolsVersion = "36.0.0"')
+              s = s.replace('buildToolsVersion "37.0.0"', 'buildToolsVersion "36.0.0"')
               p.write_text(s)
           PY
 
