@@ -34,8 +34,8 @@ jobs:
 
       - name: Install Android SDK packages
         run: |
-          yes | sdkmanager --licenses
-          sdkmanager "platform-tools" "platforms;android-37" "build-tools;37.0.0"
+          sdkmanager --licenses </dev/null
+          sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -55,7 +55,7 @@ jobs:
         working-directory: android-app
         run: |
           sed -i "s/version '8.7.3'/version '9.1.0'/; s/version '8.13.2'/version '9.1.0'/" build.gradle
-          sed -i 's/compileSdk 35/compileSdk 37/; s/compileSdk 36/compileSdk 37/' app/build.gradle
+          sed -i 's/compileSdk 35/compileSdk 36/' app/build.gradle
 
       - name: Build debug APK
         working-directory: android-app
