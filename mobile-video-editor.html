@@ -1595,7 +1595,7 @@ function renderTimeline(){const _vpSave=$('#tlViewport');const _stSave=_vpSave?_
     if(!tp.trimming&&Math.abs(dxT)>3){tp.trimming=true;sel={track:'text',id:'text'};selOptions=false;$$('#tlInner .clipblk[data-track]').forEach(x=>x.classList.remove('sel','sel-soft'));tlb.classList.add('sel-soft');syncSelPanel()}
     if(tp.trimming){const ds=dxT/pxPerSec;let nDur,nStart=tp.start0;
      if(tp.edge==='r')nDur=tp.dur0+ds;else{const end0=tp.start0+tp.dur0;nStart=Math.min(Math.max(0,tp.start0+ds),end0-0.3);nDur=end0-nStart}
-     nDur=Math.min(120,Math.max(0.3,nDur));tp.trim={start:nStart,dur:nDur};
+     nDur=Math.max(0.3,nDur);tp.trim={start:nStart,dur:nDur};
      tlb.style.left=(nStart*pxPerSec)+'px';tlb.style.width=Math.max(44,nDur*pxPerSec)+'px'}
     return}
    const dx=e.clientX-tp.x,dy=e.clientY-tp.y;
@@ -1936,7 +1936,7 @@ function bindClipPress(el){const track=el.dataset.track,id=+el.dataset.id;const 
     if(track==='main'){if(_pressInfo.edge==='r')nDur=_pressInfo.dur0+ds;else{const end0=_pressInfo.start0+_pressInfo.dur0;nStart=Math.min(Math.max(0,_pressInfo.start0+ds),end0-0.3);nDur=end0-nStart}}
     else if(_pressInfo.edge==='r')nDur=_pressInfo.dur0+ds;
     else{const end0=_pressInfo.start0+_pressInfo.dur0;nStart=Math.min(Math.max(0,_pressInfo.start0+ds),end0-0.3);nDur=end0-nStart}
-    nDur=Math.min(120,Math.max(0.3,nDur));_pressInfo.trim={dur:nDur,start:nStart};
+    nDur=Math.max(0.3,nDur);_pressInfo.trim={dur:nDur,start:nStart};
     if(track==='main'){if(_pressInfo.edge==='l')el.style.left=(nStart*pxPerSec)+'px';el.style.width=Math.max(44,nDur*pxPerSec)+'px';const lb=el.querySelector('.lb');if(lb)lb.textContent=c.label+' • '+nDur.toFixed(1)+'s'+((c.speed||1)!==1?' • '+c.speed+'x':'')+(c.kb?' • KB':'')}
     else{el.style.left=(nStart*pxPerSec)+'px';el.style.width=Math.max(track==='audio'?50:44,nDur*pxPerSec)+'px'}}
    return}
