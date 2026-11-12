@@ -42,6 +42,9 @@ jobs:
         with:
           gradle-version: '8.9'
 
+      - name: Unpack CutLite source archive
+        run: unzip -o CutLite-Source-cloud-build-workflow.zip -d .
+
       - name: Run source preflight and JavaScript checks
         working-directory: android-app
         run: |
