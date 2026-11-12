@@ -32,28 +32,63 @@ jobs:
         with:
           packages: platform-tools
 
-      - name: Install Android SDK packages
+      - name: Install published Android SDK packages
         run: |
-          sdkmanager --licenses </dev/null
-          sdkmanager "platform-tools" "platforms;android-37" "build-tools;36.0.0"
+          yes | sdkmanager --licenses >/dev/null
+          sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '9.3.1'
+          gradle-version: '9.1.0'
 
-      - name: Unpack CutLite source archive
+      - name: Unpack and normalize CutLite source
         run: |
           unzip -o CutLite-Source-cloud-build-workflow.zip -d .
-          # Keep only the canonical packaged MainActivity; stale root-level copies
-          # declare the same public class and break Java compilation.
-          rm -f android-app/app/src/main/java/MainActivity.java android-app/app/src/main/java/MainActivity-base.java
           python3 - <<'PY'
           from pathlib import Path
-          p = Path("android-app/scripts/preflight.py")
-          s = p.read_text()
-          s = s.replace("mirrors = [ROOT / 'MainActivity.java', ROOT / 'MainActivity-base.java', ROOT / 'app/src/main/java/MainActivity.java']", "mirrors = [ROOT / 'MainActivity.java', ROOT / 'MainActivity-base.java']")
-          p.write_text(s)
+          import re
+
+          root = Path("android-app")
+          java_root = root / "app/src/main/java"
+          canonical = java_root / "com/muse/videoeditor/MainActivity.java"
+          if not canonical.is_file():
+              candidates = []
+              for p in java_root.rglob("*.java"):
+                  s = p.read_text(errors="ignore")
+                  if re.search(r"public\\s+class\\s+MainActivity\\b", s):
+                      candidates.append(p)
+              raise SystemExit("Canonical MainActivity missing; candidates: " + ", ".join(map(str, candidates)))
+
+          # There must be exactly one declaration of the public Activity.
+          removed = []
+          for p in java_root.rglob("*.java"):
+              if p == canonical:
+                  continue
+              s = p.read_text(errors="ignore")
+              if re.search(r"public\\s+class\\s+MainActivity\\b", s):
+                  p.unlink()
+                  removed.append(str(p))
+          print("Kept:", canonical)
+          print("Removed duplicate Activity sources:", removed)
+
+          # The APK workflow builds from the app module, not legacy root copies.
+          preflight = root / "scripts/preflight.py"
+          if preflight.exists():
+              s = preflight.read_text()
+              s = s.replace(
+                  "mirrors = [ROOT / 'MainActivity.java', ROOT / 'MainActivity-base.java', ROOT / 'app/src/main/java/MainActivity.java']",
+                  "mirrors = [ROOT / 'MainActivity.java', ROOT / 'MainActivity-base.java']"
+              )
+              preflight.write_text(s)
+
+          # GeckoView 159 requires API 37, which is not published in this runner's
+          # SDK channel. Pin the last verified 158 nightly line for API 36 builds.
+          for p in root.rglob("*.gradle"):
+              s = p.read_text(errors="ignore")
+              s = s.replace("159.0.20261102144711", "158.0.20260923091338")
+              s = re.sub(r"compileSdk\\s+37", "compileSdk 36", s)
+              p.write_text(s)
           PY
 
       - name: Run source preflight and JavaScript checks
@@ -61,12 +96,6 @@ jobs:
         run: |
           python3 scripts/preflight.py
           python3 scripts/validate_javascript.py
-
-      - name: Align Android build tools with GeckoView 159 dependencies
-        working-directory: android-app
-        run: |
-          sed -i "s/version '8.7.3'/version '9.1.0'/; s/version '8.13.2'/version '9.1.0'/" build.gradle
-          sed -i 's/compileSdk 35/compileSdk 37/; s/compileSdk 36/compileSdk 37/' app/build.gradle
 
       - name: Build debug APK
         working-directory: android-app
