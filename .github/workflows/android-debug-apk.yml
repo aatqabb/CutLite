@@ -53,41 +53,20 @@ jobs:
           java_root = root / "app/src/main/java"
           canonical = java_root / "com/muse/videoeditor/MainActivity.java"
           if not canonical.is_file():
-              candidates = []
-              for p in java_root.rglob("*.java"):
-                  s = p.read_text(errors="ignore")
-                  if re.search(r"public\\s+class\\s+MainActivity\\b", s):
-                      candidates.append(p)
-              raise SystemExit("Canonical MainActivity missing; candidates: " + ", ".join(map(str, candidates)))
-
-          # There must be exactly one declaration of the public Activity.
+              raise SystemExit("Canonical MainActivity missing: " + str(canonical))
           removed = []
           for p in java_root.rglob("*.java"):
               if p == canonical:
                   continue
-              s = p.read_text(errors="ignore")
-              if re.search(r"public\\s+class\\s+MainActivity\\b", s):
+              if re.search(r"public\\s+class\\s+MainActivity\\b", p.read_text(errors="ignore")):
                   p.unlink()
                   removed.append(str(p))
-          print("Kept:", canonical)
-          print("Removed duplicate Activity sources:", removed)
+          print("Kept canonical Activity; removed duplicates:", removed)
 
-          # The APK workflow builds from the app module, not legacy root copies.
-          preflight = root / "scripts/preflight.py"
-          if preflight.exists():
-              s = preflight.read_text()
-              s = s.replace(
-                  "mirrors = [ROOT / 'MainActivity.java', ROOT / 'MainActivity-base.java', ROOT / 'app/src/main/java/MainActivity.java']",
-                  "mirrors = [ROOT / 'MainActivity.java', ROOT / 'MainActivity-base.java']"
-              )
-              preflight.write_text(s)
-
-          # GeckoView 159 requires API 37, which is not published in this runner's
-          # SDK channel. Pin the last verified 158 nightly line for API 36 builds.
           for p in root.rglob("*.gradle"):
               s = p.read_text(errors="ignore")
-              s = s.replace("159.0.20261102144711", "158.0.20260923091338")
-              s = re.sub(r"compileSdk\\s+37", "compileSdk 36", s)
+              s = s.replace("159.0.20261102144711", "158.0.20261021001945")
+              s = s.replace("158.0.20260923091338", "158.0.20261021001945")
               p.write_text(s)
           PY
 
