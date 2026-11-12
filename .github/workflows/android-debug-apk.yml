@@ -32,10 +32,10 @@ jobs:
         with:
           packages: platform-tools
 
-      - name: Install Android API 37 SDK
+      - name: Install published Android API 36 SDK
         run: |
           yes | sdkmanager --licenses >/dev/null
-          sdkmanager "platform-tools" "platforms;android-37" "build-tools;37.0.0"
+          sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -67,6 +67,10 @@ jobs:
               s = p.read_text(errors="ignore")
               s = s.replace("159.0.20261102144711", "158.0.20261021001945")
               s = s.replace("158.0.20260923091338", "158.0.20261021001945")
+              s = re.sub(r"(compileSdk(?:Version)?\\s*(?:=\\s*)?)37\\b", r"\\g<1>36", s)
+              s = re.sub(r"(targetSdk(?:Version)?\\s*(?:=\\s*)?)37\\b", r"\\g<1>36", s)
+              s = s.replace('buildToolsVersion = "37.0.0"', 'buildToolsVersion = "36.0.0"')
+              s = s.replace('buildToolsVersion "37.0.0"', 'buildToolsVersion "36.0.0"')
               p.write_text(s)
           PY
 
