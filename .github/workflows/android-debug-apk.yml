@@ -48,6 +48,13 @@ jobs:
           # Keep only the canonical packaged MainActivity; stale root-level copies
           # declare the same public class and break Java compilation.
           rm -f android-app/app/src/main/java/MainActivity.java android-app/app/src/main/java/MainActivity-base.java
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("android-app/scripts/preflight.py")
+          s = p.read_text()
+          s = s.replace("mirrors = [ROOT / 'MainActivity.java', ROOT / 'MainActivity-base.java', ROOT / 'app/src/main/java/MainActivity.java']", "mirrors = [ROOT / 'MainActivity.java', ROOT / 'MainActivity-base.java']")
+          p.write_text(s)
+          PY
 
       - name: Run source preflight and JavaScript checks
         working-directory: android-app
