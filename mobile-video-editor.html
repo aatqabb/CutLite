@@ -1524,11 +1524,11 @@ function renderTimeline(){const _vpSave=$('#tlViewport');const _stSave=_vpSave?_
  let extraVHTML='',extraAHTML='';for(let i=0;i<extraV;i++)extraVHTML+=`<div class="track">${layerHeader('extraV'+i,ICON_V,'V'+(3+i))}<div class="track-lane" data-lane="extraV${i}" style="width:${W}px;height:${laneH('extraV'+i,false)}px">${overlayClips.filter(c=>c.vlane==='extraV'+i).map(ovBlk).join('')}${fullOn('extraV'+i)}${txtLane==='extraV'+i?txtHTML:''}${junctionHTML('extraV'+i)}</div>${laneDivider('extraV'+i)}</div>`;
  for(let i=0;i<extraA;i++)extraAHTML+=`<div class="track">${layerHeader('extraA'+i,ICON_A,'A'+(2+i))}<div class="track-lane" data-lane="extraA${i}" style="width:${W}px;height:${laneH('extraA'+i,false)}px">${audioClips.filter(c=>c.alane==='extraA'+i).map(audBlk).join('')}</div>${laneDivider('extraA'+i)}</div>`;
  $('#tlInner').innerHTML=`<div class="ruler" style="width:${W+_trail}px;margin-left:${TL_HDR}px">${ruler}</div>
- <div class="track">${layerHeader('overlay',ICON_V2,'V2')}<div class="track-lane" data-lane="overlay" style="width:${W}px;height:${laneH('overlay')}px">${ovHTML}${fullOvHTML}${txtLane==='overlay'?txtHTML:''}${junctionHTML('overlay')}</div>${laneDivider('overlay')}</div>${extraVHTML}
+ <div class="track">${layerHeader('overlay',ICON_V2,'V2')}<div class="track-lane" data-lane="overlay" style="width:${W}px;height:${laneH('overlay')}px">${ovHTML}${fullOvHTML}${txtLane==='overlay'?txtHTML:''}${!ovHTML&&!fullOvHTML&&!(txtLane==='overlay'&&txtVal)?'<span class="lanehint" data-lane="overlay">＋</span>':''}${junctionHTML('overlay')}</div>${laneDivider('overlay')}</div>${extraVHTML}
  <div class="track">${layerHeader('main',ICON_V,'V1')}<div class="track-lane" data-lane="main" style="width:${W}px;height:${laneH('main',false)}px">${mainHTML}${txtLane==='main'?txtHTML:''}${junctionHTML('main')}</div>${laneDivider('main')}</div>
- <div class="track">${layerHeader('audio',ICON_A,'A1')}<div class="track-lane" data-lane="audio" style="width:${W}px;height:${laneH('audio',false)}px">${audHTML}</div>${laneDivider('audio')}</div>${extraAHTML}`;
+ <div class="track">${layerHeader('audio',ICON_A,'A1')}<div class="track-lane" data-lane="audio" style="width:${W}px;height:${laneH('audio',false)}px">${audHTML||'<span class="lanehint" data-lane="audio">＋</span>'}</div>${laneDivider('audio')}</div>${extraAHTML}`;
  $$('#tlInner .clipblk[data-track]').forEach(el=>bindClipPress(el));
-
+ $$('#tlInner .lanehint').forEach(h=>h.onclick=e=>{e.stopPropagation();const k=h.dataset.lane;if(k==='audio')$('#fileAudio').click();else if(k==='overlay')$('#fileOverlay').click()});
  /* Junction buttons: a TAP opens the transition picker for that one join. A
     press that turns into a DRAG never opens the picker — the circle sits on
     the join, inside BOTH neighbours' 13px edge-trim zones, so the drag is
