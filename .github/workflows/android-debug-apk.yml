@@ -58,7 +58,7 @@ jobs:
           for p in java_root.rglob("*.java"):
               if p == canonical:
                   continue
-              if re.search(r"public\\s+class\\s+MainActivity\\b", p.read_text(errors="ignore")):
+              if re.search(r"public\s+class\s+MainActivity\b", p.read_text(errors="ignore")):
                   p.unlink()
                   removed.append(str(p))
           print("Kept canonical Activity; removed duplicates:", removed)
