@@ -86,6 +86,21 @@ jobs:
               manifest.write_text(m)
               print("Applied GeckoView service process manifest overrides")
 
+          manifest = root / "app/src/main/AndroidManifest.xml"
+          if manifest.is_file():
+              m = manifest.read_text(errors="ignore")
+              if "xmlns:tools=" not in m:
+                  m = re.sub(r"<manifest\\b", '<manifest xmlns:tools="http://schemas.android.com/tools"', m, count=1)
+              def add_tools_replace(match, attr):
+                  tag = match.group(0)
+                  if "tools:replace=" in tag:
+                      return tag
+                  return tag[:-1] + f' tools:replace="{attr}">'
+              m = re.sub(r"<service\\b(?=[^>]*org\\.mozilla\\.gecko\\.process\\.GeckoChildProcessServices)[^>]*>", lambda x: add_tools_replace(x, "android:process"), m)
+              m = re.sub(r"<provider\\b(?=[^>]*org\\.mozilla\\.gecko\\.GeckoClipboardContentProvider)[^>]*>", lambda x: add_tools_replace(x, "android:exported"), m)
+              manifest.write_text(m)
+              print("Applied GeckoView manifest merge overrides")
+
           app_gradle = root / "app/build.gradle"
           if app_gradle.is_file():
               g = app_gradle.read_text(errors="ignore")
