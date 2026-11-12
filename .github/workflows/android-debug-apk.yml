@@ -48,7 +48,23 @@ jobs:
           echo "=== CUTLITE SOURCE FILE INVENTORY ==="
           find . -type f \( -name '*.html' -o -name '*.js' -o -name '*.css' \) -not -path './.git/*' -printf '%p %s bytes\\n' | head -80
           echo "=== UI / IMPORT / TIMELINE MATCHES ==="
-          grep -RniE 'Your Projects|V2|A1|import|data import|play|timeline|audio|new project|project settings|bitrate|frame rate|fps' . --include='*.html' --include='*.js' --exclude-dir=.git | head -160 || true
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p = Path("mobile-video-editor.html")
+          lines = p.read_text(errors="ignore").splitlines()
+          terms = re.compile(r"Your Projects|V2|A1|import|data.?import|timeline|new.?project|project.?settings|bitrate|frame.?rate|fps|play.?btn|audio.?track|video.?track", re.I)
+          hits = [i for i,line in enumerate(lines) if terms.search(line)]
+          print("HTML line count:", len(lines), "matching lines:", len(hits))
+          shown = set()
+          for i in hits[:100]:
+              lo, hi = max(0, i-2), min(len(lines), i+3)
+              if any(k in shown for k in range(lo, hi)): continue
+              print(f"--- HTML lines {lo+1}-{hi} ---")
+              for k in range(lo, hi):
+                  shown.add(k)
+                  print(f"{k+1}: {lines[k][:1200]}")
+          PY
           python3 - <<'PY'
           from pathlib import Path
           import re
