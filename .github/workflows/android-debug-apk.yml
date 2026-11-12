@@ -45,17 +45,18 @@ jobs:
       - name: Unpack CutLite source archive
         run: unzip -o CutLite-Source-cloud-build-workflow.zip -d .
 
-      - name: Align Android build tools with packaged dependencies
-        working-directory: android-app
-        run: |
-          sed -i "s/version '8.7.3'/version '8.13.2'/" build.gradle
-          sed -i 's/compileSdk 35/compileSdk 36/' app/build.gradle
-
+      # Validate the source archive before adapting the build versions for this runner.
       - name: Run source preflight and JavaScript checks
         working-directory: android-app
         run: |
           python3 scripts/preflight.py
           python3 scripts/validate_javascript.py
+
+      - name: Align Android build tools with packaged dependencies
+        working-directory: android-app
+        run: |
+          sed -i "s/version '8.7.3'/version '8.13.2'/" build.gradle
+          sed -i 's/compileSdk 35/compileSdk 36/' app/build.gradle
 
       - name: Build debug APK
         working-directory: android-app
