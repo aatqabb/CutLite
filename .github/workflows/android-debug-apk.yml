@@ -44,7 +44,7 @@ jobs:
 
       - name: Unpack and normalize CutLite source
         run: |
-          unzip -o CutLite-Source-cloud-build-workflow.zip -d .
+          unzip -n CutLite-Source-cloud-build-workflow.zip -d .
           # Publish the exact existing editor source from the archive into the repo
           # so subsequent edits modify the current app rather than creating a new one.
           test -s mobile-video-editor.html
