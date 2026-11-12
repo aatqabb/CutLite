@@ -111,29 +111,3 @@ jobs:
           path: android-app/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 14
- <<< "$failures" || true)"
-          if [ -n "$unexpected" ]; then
-            echo "Unexpected source preflight failures:"
-            printf '%s\\n' "$unexpected"
-            exit 1
-          fi
-          if [ "$preflight_status" -ne 0 ] && [ -z "$failures" ]; then
-            echo "Preflight exited non-zero without a recognized failure; stopping."
-            exit "$preflight_status"
-          fi
-          python3 scripts/validate_javascript.py
-
-      - name: Build debug APK
-        working-directory: android-app
-        run: gradle --no-daemon --stacktrace :app:assembleDebug
-
-      - name: Verify APK exists
-        run: test -s android-app/app/build/outputs/apk/debug/app-debug.apk
-
-      - name: Upload debug APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: CutLite-debug-apk
-          path: android-app/app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: error
-          retention-days: 14
