@@ -67,12 +67,20 @@ jobs:
               s = p.read_text(errors="ignore")
               s = s.replace("8.7.3", "9.1.0")
               s = s.replace("159.0.20261102144711", "157.0.20260924084938")
-              s = s.replace("158.0.20261021001945", "157.0.20260924084938")
+              s = s.replace("158.0.20261021001945", "156.0.20260921121718")
+              s = s.replace("157.0.20260924084938", "156.0.20260921121718")
               s = s.replace("compileSdk 35", "compileSdk 36").replace("compileSdk 37", "compileSdk 36")
               s = s.replace("targetSdk 37", "targetSdk 34")
               s = s.replace('buildToolsVersion = "37.0.0"', 'buildToolsVersion = "36.0.0"')
               s = s.replace('buildToolsVersion "37.0.0"', 'buildToolsVersion "36.0.0"')
               p.write_text(s)
+
+          app_gradle = root / "app/build.gradle"
+          if app_gradle.is_file():
+              g = app_gradle.read_text(errors="ignore")
+              if "force 'androidx.core:core:1.18.0'" not in g and 'force "androidx.core:core:1.18.0"' not in g:
+                  g += "\nconfigurations.configureEach { resolutionStrategy.force 'androidx.core:core:1.18.0' }\n"
+                  app_gradle.write_text(g)
           PY
 
       - name: Run source preflight and JavaScript checks
