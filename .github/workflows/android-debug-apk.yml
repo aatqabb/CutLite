@@ -6,7 +6,7 @@ on:
     branches: [ main, master ]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build-debug-apk:
@@ -45,6 +45,16 @@ jobs:
       - name: Unpack and normalize CutLite source
         run: |
           unzip -o CutLite-Source-cloud-build-workflow.zip -d .
+          # Publish the exact existing editor source from the archive into the repo
+          # so subsequent edits modify the current app rather than creating a new one.
+          test -s mobile-video-editor.html
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add mobile-video-editor.html
+          if ! git diff --cached --quiet; then
+            git commit -m "Expose current CutLite editor source for in-place updates"
+            git push
+          fi
           echo "=== CUTLITE SOURCE FILE INVENTORY ==="
           find . -type f \( -name '*.html' -o -name '*.js' -o -name '*.css' \) -not -path './.git/*' -printf '%p %s bytes\\n' | head -80
           echo "=== UI / IMPORT / TIMELINE MATCHES ==="
