@@ -195,3 +195,14 @@ jobs:
           path: android-app/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 14
+
+      - name: Publish direct APK download (no ZIP)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest-apk
+          name: CutLite Latest APK
+          prerelease: true
+          make_latest: false
+          files: android-app/app/build/outputs/apk/debug/app-debug.apk
+          fail_on_unmatched_files: true
+          overwrite_files: true
