@@ -165,6 +165,7 @@ jobs:
         run: gradle --no-daemon --stacktrace :app:assembleDebug
 
       - name: Verify APK package, signature, and device compatibility metadata
+        shell: bash
         run: |
           set -euo pipefail
           APK="android-app/app/build/outputs/apk/debug/app-debug.apk"
@@ -180,7 +181,13 @@ jobs:
           test -n "$AAPT"
           "$AAPT" dump badging "$APK" | head -25
           echo "=== APK ABI CONTENTS ==="
-          unzip -Z1 "$APK" | grep -E '^lib/[^/]+/.*\.so
+          unzip -Z1 "$APK" | grep -E '^lib/[^/]+/.*[.]so$' | cut -d/ -f2 | sort -u || true
+          echo "=== APK SIZE ==="
+          ls -lh "$APK"
+
+      - name: Verify APK exists
+        run: test -s android-app/app/build/outputs/apk/debug/app-debug.apk
+
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
