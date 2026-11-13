@@ -1778,7 +1778,7 @@ let tlViewH=0;
    Media tab imports. ---- */
 (function(){const b=$('#hdrImportBtn'),fi=$('#fileImport');if(!b||!fi)return;
  b.onclick=e=>{e.stopPropagation();fi.click()};
- fi.addEventListener('change',()=>{const fl=[...fi.files];fi.value='';if(!fl.length)return;const isVid=f=>/\.(mp4|mov|m4v|webm|mkv|avi|3gp)$/i.test(f.name);const aud=fl.filter(f=>f.type.startsWith('audio')&&!isVid(f));const vis=fl.filter(f=>!f.type.startsWith('audio')||isVid(f));if(vis.length)handleFiles(vis,'main');if(aud.length)handleFiles(aud,'audio')});
+ fi.addEventListener('change',()=>{const fl=[...fi.files];fi.value='';if(!fl.length)return;const aud=fl.filter(f=>cutliteMediaKind(f)==='audio');const vis=fl.filter(f=>['video','image'].includes(cutliteMediaKind(f)));if(vis.length)handleFiles(vis,'main');if(aud.length)handleFiles(aud,'audio')});
 })();
 /* Dynamic viewport + bar height — keeps the bottom toolbar pinned and visible in Chrome AND Firefox (mobile toolbars show/hide differently) */
 let _lastVpW=0;
@@ -2061,15 +2061,22 @@ $('#fxCropY').addEventListener('input',fxSetCrop);
 $('#fxCropX').addEventListener('change',()=>{pushHistory();autoSave()});
 $('#fxCropY').addEventListener('change',()=>{pushHistory();autoSave()});
 /* ---- Imports ---- */
+function cutliteMediaKind(f){
+ const n=String(f&&f.name||'').toLowerCase(),t=String(f&&f.type||'').toLowerCase();
+ if(t.startsWith('video/')||/\.(mp4|m4v|mov|webm|mkv|avi|3gp|mpeg|mpg|ogv)$/i.test(n))return 'video';
+ if(t.startsWith('image/')||/\.(jpg|jpeg|png|gif|webp|bmp|heic|heif|avif|tif|tiff)$/i.test(n))return 'image';
+ if(t.startsWith('audio/')||/\.(mp3|m4a|aac|wav|ogg|oga|opus|flac|wma|aiff|mid|midi)$/i.test(n))return 'audio';
+ return 'unknown';
+}
 function handleFiles(files,target){const fl=[...files];if(replaceCtx&&fl.length){const f=fl[0];const arr=replaceCtx.track==='main'?mainClips:replaceCtx.track==='overlay'?overlayClips:audioClips;const c=arr.find(x=>x.id===replaceCtx.id);if(c){const url=URL.createObjectURL(f);if(replaceCtx.track==='audio'){c.src=url;c.label=f.name.slice(0,22)}else{c.type=f.type.startsWith('image')?'image':'video';c.src=url;c.label=f.name.slice(0,20)}pushHistory();renderAll();toast('Clip replaced ✓')}replaceCtx=null;return} /* Insert at the cursor (playhead), in the pressed layer ONLY: the new clip lands exactly where the
     playhead is; nothing is cut — the clip under the cursor and everything after it in the SAME layer
     are pushed forward by the new clip's length, and every other layer is left untouched. */
  const at=Math.max(0,Math.round(playheadSec*100)/100),r2=v=>Math.round(v*100)/100;let added=0;
- if(target==='main'){const news=[];fl.forEach(f=>{const isV=f.type.startsWith('video'),isI=f.type.startsWith('image');if(isV||isI)news.push({id:nid(),type:isV?'video':'image',src:URL.createObjectURL(f),label:f.name.slice(0,20),dur:isV?5:3,speed:1,vol:1,kb:false,kbZoom:1.22})});
+ if(target==='main'){const news=[];fl.forEach(f=>{const kind=cutliteMediaKind(f),isV=kind==='video',isI=kind==='image';if(isV||isI)news.push({id:nid(),type:isV?'video':'image',src:URL.createObjectURL(f),label:f.name.slice(0,20),dur:isV?5:3,speed:1,vol:1,kb:false,kbZoom:1.22})});
   if(news.length){pushHistory();ensureMainStarts();const block=news.reduce((a,c)=>a+c.dur/(c.speed||1),0);mainClips.forEach(c=>{if((c.start||0)>=at-0.001)c.start=Math.round(((c.start||0)+block)*100)/100});let s=at;news.forEach(c=>{c.start=Math.round(s*100)/100;s+=c.dur/(c.speed||1)});mainClips.push(...news);mainClips.sort((a,b)=>(a.start||0)-(b.start||0));added=news.length}}
  if(target==='overlay'){const news=[];fl.forEach(f=>{const isV=f.type.startsWith('video'),isI=f.type.startsWith('image');if(isV||isI)news.push({id:nid(),type:isV?'video':'image',src:URL.createObjectURL(f),label:f.name.slice(0,20),start:0,dur:5})});
   if(news.length){pushHistory();const block=news.reduce((a,c)=>a+c.dur,0);let lastEnd=at+block;[...overlayClips].sort((a,b)=>a.start-b.start).forEach(c=>{if(c.start+c.dur>at){c.start=r2(Math.max(c.start+block,lastEnd));lastEnd=c.start+c.dur}});let s=at;news.forEach(c=>{c.start=r2(s);s=r2(s+c.dur);overlayClips.push(c)});added=news.length}}
- if(target==='audio'){const news=[];fl.forEach(f=>{if(!f.type.startsWith('audio'))return;if(/\.(mp4|mov|m4v|webm|mkv|avi|3gp)$/i.test(f.name))return; /* a video file must never land on the audio lane — some Android pickers report an .mp4 as audio/mp4, and that used to create a stray audio item from a video import */ const url=URL.createObjectURL(f);news.push({id:nid(),label:f.name.slice(0,22),start:0,dur:10,vol:.9,fadeIn:0,fadeOut:0,kind:'file',src:url});const au=document.createElement('audio');au.controls=true;au.src=url;au.style.width='100%';au.volume=trackVol.a1;$('#audioPlayers').appendChild(au)});
+ if(target==='audio'){const news=[];fl.forEach(f=>{if(cutliteMediaKind(f)!=='audio')return; /* a video file must never land on the audio lane — some Android pickers report an .mp4 as audio/mp4, and that used to create a stray audio item from a video import */ const url=URL.createObjectURL(f);news.push({id:nid(),label:f.name.slice(0,22),start:0,dur:10,vol:.9,fadeIn:0,fadeOut:0,kind:'file',src:url});const au=document.createElement('audio');au.controls=true;au.src=url;au.style.width='100%';au.volume=trackVol.a1;$('#audioPlayers').appendChild(au)});
   if(news.length){pushHistory();const block=news.reduce((a,c)=>a+c.dur,0);let lastEnd=at+block;audioClips.sort((a,b)=>a.start-b.start).forEach(c=>{if(c.start+c.dur>at){c.start=r2(Math.max(c.start+block,lastEnd));lastEnd=c.start+c.dur}});let s=at;news.forEach(c=>{c.start=r2(s);s=r2(s+c.dur);audioClips.push(c)});added=news.length}}
  if(added)renderAll();
  toast(added?'Added at the cursor ▶ — later clips in this layer moved forward, nothing was cut':'Imported 🎉 Check the timeline')}
