@@ -203,12 +203,17 @@ jobs:
           files: release/CutLite.apk
 
       - name: Publish direct APK download (no ZIP)
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: latest-apk
-          name: CutLite Latest APK
-          prerelease: true
-          make_latest: false
-          files: android-app/app/build/outputs/apk/debug/app-debug.apk
-          fail_on_unmatched_files: true
-          overwrite_files: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          APK="android-app/app/build/outputs/apk/debug/app-debug.apk"
+          test -s "$APK"
+          if gh release view latest-apk >/dev/null 2>&1; then
+            gh release upload latest-apk "$APK" --clobber
+          else
+            gh release create latest-apk "$APK" \
+              --title "CutLite Latest APK" \
+              --notes "Direct Android APK download. No ZIP extraction required." \
+              --prerelease
+          fi
