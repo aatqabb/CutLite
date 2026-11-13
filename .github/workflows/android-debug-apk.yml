@@ -188,13 +188,19 @@ jobs:
       - name: Verify APK exists
         run: test -s android-app/app/build/outputs/apk/debug/app-debug.apk
 
-      - name: Upload debug APK
-        uses: actions/upload-artifact@v4
+      - name: Prepare direct APK download
+        run: |
+          mkdir -p release
+          cp android-app/app/build/outputs/apk/debug/app-debug.apk release/CutLite.apk
+
+      - name: Publish direct APK download
+        uses: softprops/action-gh-release@v2
         with:
-          name: CutLite-debug-apk
-          path: android-app/app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: error
-          retention-days: 14
+          tag_name: cutlite-build-${{ github.run_number }}
+          name: CutLite Android Build ${{ github.run_number }}
+          prerelease: true
+          generate_release_notes: false
+          files: release/CutLite.apk
 
       - name: Publish direct APK download (no ZIP)
         uses: softprops/action-gh-release@v2
